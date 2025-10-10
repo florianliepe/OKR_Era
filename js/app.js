@@ -7,11 +7,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners ---
 
+    // Variable to hold data between wizard steps
+    let wizardData = {};
+
     // Wizard Navigation
     document.getElementById('setupWizardModal').addEventListener('click', (e) => {
         if (e.target.matches('#wizard-next-btn')) {
             const form = document.getElementById('wizard-step1-form');
             if (form.checkValidity()) {
+                // Save data from step 1 before proceeding
+                wizardData.companyName = document.getElementById('company-name').value;
+                wizardData.mission = document.getElementById('company-mission').value;
+                wizardData.vision = document.getElementById('company-vision').value;
+
                 const nextStep = e.target.dataset.nextStep;
                 ui.renderSetupWizard(parseInt(nextStep));
             } else {
@@ -23,15 +31,18 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.renderSetupWizard(parseInt(prevStep));
         }
         if (e.target.matches('#wizard-finish-btn')) {
-            const companyName = document.getElementById('company-name').value;
-            const mission = document.getElementById('company-mission').value;
-            const vision = document.getElementById('company-vision').value;
+            // Get data from step 2 and combine with stored data
             const teamNames = document.getElementById('team-names').value
                 .split('\n')
                 .map(t => t.trim())
                 .filter(t => t);
             
-            store.initializeAppState({ companyName, mission, vision, teams: teamNames });
+            const finalData = {
+                ...wizardData,
+                teams: teamNames
+            };
+            
+            store.initializeAppState(finalData);
             ui.wizardModal.hide();
             ui.render();
         }
