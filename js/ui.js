@@ -27,7 +27,10 @@ class UI {
 
         state.teams.forEach(team => {
             const teamObjectives = objectives.filter(o => o.ownerId === team.id);
-            html += this.renderObjectiveGroup(team.name, teamObjectives, team.id);
+            // Only render the team section if it has objectives
+            if (teamObjectives.length > 0) {
+                html += this.renderObjectiveGroup(team.name, teamObjectives, team.id);
+            }
         });
         
         this.appContainer.innerHTML = html || '<div class="text-center p-5 bg-body-secondary rounded"><h3>No Objectives Yet</h3><p>Click "Add Objective" to get started.</p></div>';
@@ -56,10 +59,10 @@ class UI {
                                 <i class="bi bi-three-dots-vertical"></i>
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item edit-objective-btn" href="#" data-id="${objective.id}"><i class="bi bi-pencil-fill me-2"></i>Edit</a></li>
+                                <li><a class="dropdown-item edit-objective-btn" href="#" data-bs-toggle="modal" data-bs-target="#objectiveModal" data-id="${objective.id}"><i class="bi bi-pencil-fill me-2"></i>Edit</a></li>
                                 <li><a class="dropdown-item delete-objective-btn" href="#" data-id="${objective.id}"><i class="bi bi-trash-fill me-2"></i>Delete</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item add-kr-btn" href="#" data-id="${objective.id}"><i class="bi bi-plus-circle-dotted me-2"></i>Add Key Result</a></li>
+                                <li><a class="dropdown-item add-kr-btn" href="#" data-bs-toggle="modal" data-bs-target="#keyResultModal" data-id="${objective.id}"><i class="bi bi-plus-circle-dotted me-2"></i>Add Key Result</a></li>
                             </ul>
                         </div>
                     </div>
@@ -93,7 +96,7 @@ class UI {
                     </div>
                 </div>
                 <div class="kr-actions">
-                    <a href="#" class="edit-kr-btn" data-obj-id="${objectiveId}" data-kr-id="${kr.id}"><i class="bi bi-pencil"></i></a>
+                    <a href="#" class="edit-kr-btn" data-bs-toggle="modal" data-bs-target="#keyResultModal" data-obj-id="${objectiveId}" data-kr-id="${kr.id}"><i class="bi bi-pencil"></i></a>
                     <a href="#" class="delete-kr-btn" data-obj-id="${objectiveId}" data-kr-id="${kr.id}"><i class="bi bi-trash"></i></a>
                 </div>
             </div>
