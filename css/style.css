@@ -1,0 +1,62 @@
+:root {
+    --bs-progress-height: 1rem;
+}
+
+body {
+    background-color: #212529;
+}
+
+.okr-card {
+    background-color: #343a40;
+    border: 1px solid #495057;
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+.okr-card:hover {
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);
+}
+
+.okr-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.kr-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0;
+}
+
+.kr-title {
+    flex-grow: 1;
+}
+
+.kr-progress {
+    width: 200px;
+    flex-shrink: 0;
+}
+
+.kr-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.progress-bar-label {
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+    font-size: 0.8rem;
+}
+
+.team-header {
+    border-bottom: 2px solid #0d6efd;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    color: #f8f9fa;
+}
+
+#app-container {
+    max-width: 1600px;
+}
