@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         if (e.target.matches('#wizard-back-btn')) {
-            const prevStep = e.target.dataset.prevStep;
+            const prevStep = e.target.dataset.prev-step;
             ui.renderSetupWizard(parseInt(prevStep));
         }
         if (e.target.matches('#wizard-finish-btn')) {
@@ -109,11 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // Modal Open triggers
+    // Modal Open triggers - This single listener handles all modal population logic
     document.addEventListener('show.bs.modal', (e) => {
         const modal = e.target;
-        const trigger = e.relatedTarget;
+        const trigger = e.relatedTarget; // The button that was clicked
         
+        if (!trigger) return; // Exit if modal was opened via JS
+
         if (modal.id === 'objectiveModal') {
             const form = document.getElementById('objective-form');
             form.reset();
@@ -122,14 +124,14 @@ document.addEventListener('DOMContentLoaded', () => {
             ownerSelect.innerHTML = `<option value="company">${state.companyName} (Company-wide)</option>` +
                 state.teams.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
                 
-            if (trigger && trigger.classList.contains('edit-objective-btn')) {
+            if (trigger.classList.contains('edit-objective-btn')) {
                  document.getElementById('objective-modal-title').textContent = 'Edit Objective';
                  const objective = state.objectives.find(o => o.id === trigger.dataset.id);
                  document.getElementById('objective-id').value = objective.id;
                  document.getElementById('objective-title').value = objective.title;
                  document.getElementById('objective-owner').value = objective.ownerId;
                  document.getElementById('objective-notes').value = objective.notes;
-            } else {
+            } else { // This is for 'Add Objective' from the main nav button
                  document.getElementById('objective-modal-title').textContent = 'Add Objective';
                  document.getElementById('objective-id').value = '';
             }
@@ -140,12 +142,12 @@ document.addEventListener('DOMContentLoaded', () => {
             form.reset();
             const state = store.getState();
             
-            if(trigger && trigger.classList.contains('add-kr-btn')) {
+            if (trigger.classList.contains('add-kr-btn')) {
                 document.getElementById('kr-modal-title').textContent = 'Add Key Result';
-                document.getElementById('kr-objective-id').value = trigger.dataset.id;
+                // Note: The objective ID is now just 'id' from the trigger button
+                document.getElementById('kr-objective-id').value = trigger.dataset.id; 
                 document.getElementById('kr-id').value = '';
-            }
-             if(trigger && trigger.classList.contains('edit-kr-btn')) {
+            } else if (trigger.classList.contains('edit-kr-btn')) {
                 document.getElementById('kr-modal-title').textContent = 'Edit Key Result';
                 const { objId, krId } = trigger.dataset;
                 const objective = state.objectives.find(o => o.id === objId);
