@@ -42,8 +42,8 @@ class Store {
                 endDate: "",
                 status: "Active"
             }],
-            teams: initialData.teams.map(teamName => ({
-                id: `team-${teamName.toLowerCase().replace(/\s/g, '-')}-${Date.now()}`,
+            teams: initialData.teams.map((teamName, index) => ({
+                id: `team-${teamName.toLowerCase().replace(/\s/g, '-')}-${Date.now() + index}`,
                 name: teamName
             })),
             objectives: [],
@@ -77,9 +77,15 @@ class Store {
 
     deleteCycle(id) {
         // Prevent deleting the last or active cycle
-        if (this.state.cycles.length <= 1) return alert('Cannot delete the last cycle.');
+        if (this.state.cycles.length <= 1) {
+            alert('Cannot delete the last cycle.');
+            return;
+        }
         const cycle = this.state.cycles.find(c => c.id === id);
-        if(cycle.status === 'Active') return alert('Cannot delete the active cycle.');
+        if(cycle.status === 'Active') {
+            alert('Cannot delete the active cycle.');
+            return;
+        }
 
         this.state.cycles = this.state.cycles.filter(c => c.id !== id);
         // Also remove objectives associated with this cycle
