@@ -109,3 +109,164 @@ document.addEventListener('DOMContentLoaded', () => {
                     const mapKey = `${objectiveTitle}|${ownerName}|${cycleName}`;
                     if (!objectivesMap.has(mapKey)) {
                         const owner = newState.teams.find(t => t.name === ownerName) || {id: 'company'};
+                        let cycle = newState.cycles.find(c => c.name === cycleName);
+                        if (!cycle) {
+                            cycle = {id: `cycle-imported-${Date.now()}`, name: cycleName, status: "Archived", startDate: "", endDate: ""};
+                            newState.cycles.push(cycle);
+                        }
+                        const objective = { id: `obj-${Date.now()}-${Math.random()}`, cycleId: cycle.id, ownerId: owner.id, title: objectiveTitle, notes: "", progress: 0, grade: null, keyResults: [] };
+                        newState.objectives.push(objective);
+                        objectivesMap.set(mapKey, objective);
+                    }
+                    const objective = objectivesMap.get(mapKey);
+                    if (row["Key Result Title"] && row["Key Result Title"] !== "(No key results)") {
+                         objective.keyResults.push({ id: `kr-${Date.now()}-${Math.random()}`, title: row["Key Result Title"], startValue: Number(row["Start Value"] || 0), targetValue: Number(row["Target Value"] || 100), currentValue: Number(row["Current Value"] || 0), progress: 0 });
+                    }
+                });
+                newState.objectives.forEach(obj => obj.progress = store.calculateProgress(obj));
+                store.replaceState(newState);
+                router();
+                ui.renderNavControls(store.getState());
+                alert('Import successful!');
+            } catch (error) {
+                console.error("Import failed:", error);
+                alert("Import failed. Please check the Excel file format.");
+            }
+        };
+        reader.readAsArrayBuffer(file);
+        e.target.value = '';
+    });
+    
+    document.getElementById('export-excel-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        const state = store.getState();
+        if (!state) return;
+        const dataForExport = [];
+        state.objectives.forEach(obj => {
+            const cycle = state.cycles.find(c => c.id === obj.cycleId);
+            const owner = store.getOwnerName(obj.ownerId);
+            if (obj.keyResults.length === 0) {
+                dataForExport.push({ "Cycle": cycle ? cycle.name : 'N/A', "Owner": owner, "Objective Title": obj.title, "Key Result Title": "(No key results)", "Start Value": "", "Target Value": "", "Current Value": "", "Progress (%)": obj.progress });
+            } else {
+                obj.keyResults.forEach(kr => {
+                    dataForExport.push({ "Cycle": cycle ? cycle.name : 'N/A', "Owner": owner, "Objective Title": obj.title, "Key Result Title": kr.title, "Start Value": kr.startValue, "Target Value": kr.targetValue, "Current Value": kr.currentValue, "Progress (%)": kr.progress });
+                });
+            }
+        });
+        const worksheet = XLSX.utils.json_to_sheet(dataForExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "OKRs");
+        XLSX.writeFile(workbook, `OKR_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+    });
+
+    let wizardData = {};
+    document.getElementById('setupWizardModal').addEventListener('click', (e) => {
+        if (e.target.matches('#wizard-next-btn')) {
+            const form = document.getElementById('wizard-step1-form');
+            if (form.checkValidity()) {
+                wizardData.companyName = document.getElementById('company-name').value;
+                wizardData.mission = document.getElementById('company-mission').value;
+                wizardData.vision = document.getElementById('company-vision').value;
+                ui.renderSetupWizard(parseInt(e.target.dataset.nextStep));
+            } else { form.reportValidity(); }
+        }
+        if (e.target.matches('#wizard-back-btn')) ui.renderSetupWizard(parseInt(e.target.dataset.prevStep));
+        if (e.target.matches('#wizard-finish-btn')) {
+            const teamNames = document.getElementById('team-names').value.split('\n').map(t => t.trim()).filter(t => t);
+            store.initializeAppState({ ...wizardData, teams: teamNames });
+            ui.wizardModal.hide();
+            ui.renderInitialState();
+            router();
+        }
+    });
+
+    document.getElementById('objective-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('objective-id').value;
+        const data = { title: document.getElementById('objective-title').value, ownerId: document.getElementById('objective-owner').value, notes: document.getElementById('objective-notes').value };
+        if (id) store.updateObjective(id, data);
+        else store.addObjective(data);
+        ui.objectiveModal.hide();
+        ui.renderExplorerView();
+    });
+    
+    document.getElementById('kr-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const objectiveId = document.getElementById('kr-objective-id').value, krId = document.getElementById('kr-id').value;
+        const data = { title: document.getElementById('kr-title').value, startValue: document.getElementById('kr-start-value').value, targetValue: document.getElementById('kr-target-value').value, currentValue: document.getElementById('kr-current-value').value };
+        if (krId) store.updateKeyResult(objectiveId, krId, data);
+        else store.addKeyResult(objectiveId, data);
+        ui.keyResultModal.hide();
+        ui.renderExplorerView();
+    });
+
+    document.getElementById('explorer-view').addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-objective-btn');
+        if (deleteBtn) {
+            e.preventDefault();
+            if (confirm('Are you sure?')) {
+                store.deleteObjective(deleteBtn.dataset.id);
+                ui.renderExplorerView();
+            }
+        }
+        const deleteKrBtn = e.target.closest('.delete-kr-btn');
+        if (deleteKrBtn) {
+            e.preventDefault();
+            const { objId, krId } = deleteKrBtn.dataset;
+            store.deleteKeyResult(objId, krId);
+            ui.renderExplorerView();
+        }
+    });
+    
+    document.addEventListener('show.bs.modal', (e) => {
+        const modal = e.target, trigger = e.relatedTarget;
+        if (!trigger) return;
+        const state = store.getState();
+        if (!state) return;
+
+        if (modal.id === 'objectiveModal') {
+            const form = document.getElementById('objective-form');
+            form.reset();
+            const ownerSelect = document.getElementById('objective-owner');
+            ownerSelect.innerHTML = `<option value="company">${state.companyName} (Company-wide)</option>${state.teams.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}`;
+            
+            if (trigger.id === 'add-objective-btn') {
+                 document.getElementById('objective-modal-title').textContent = 'Add Objective';
+                 document.getElementById('objective-id').value = '';
+            } else if (trigger.classList.contains('edit-objective-btn')) {
+                 document.getElementById('objective-modal-title').textContent = 'Edit Objective';
+                 const objective = state.objectives.find(o => o.id === trigger.dataset.id);
+                 document.getElementById('objective-id').value = objective.id;
+                 document.getElementById('objective-title').value = objective.title;
+                 document.getElementById('objective-owner').value = objective.ownerId;
+                 document.getElementById('objective-notes').value = objective.notes;
+            }
+        }
+        
+        if (modal.id === 'keyResultModal') {
+            const form = document.getElementById('kr-form');
+            form.reset();
+            
+            if (trigger.classList.contains('add-kr-btn')) {
+                document.getElementById('kr-modal-title').textContent = 'Add Key Result';
+                document.getElementById('kr-objective-id').value = trigger.dataset.id; 
+                document.getElementById('kr-id').value = '';
+            } else if (trigger.classList.contains('edit-kr-btn')) {
+                document.getElementById('kr-modal-title').textContent = 'Edit Key Result';
+                const { objId, krId } = trigger.dataset;
+                const kr = state.objectives.find(o => o.id === objId).keyResults.find(k => k.id === krId);
+                document.getElementById('kr-objective-id').value = objId;
+                document.getElementById('kr-id').value = krId;
+                document.getElementById('kr-title').value = kr.title;
+                document.getElementById('kr-start-value').value = kr.startValue;
+                document.getElementById('kr-target-value').value = kr.targetValue;
+                document.getElementById('kr-current-value').value = kr.currentValue;
+            }
+        }
+    });
+
+    window.addEventListener('okr-data-changed', () => {
+        console.log('Data changed via API, re-rendering...');
+        router();
+    });
+});
