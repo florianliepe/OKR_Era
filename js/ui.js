@@ -191,8 +191,8 @@ class UI {
     renderOkrCard(objective) {
         const ownerName = this.store.getOwnerName(objective.ownerId);
         return `
-            <div class="col-12 col-lg-6 col-xl-4">
-                <div class="card okr-card h-100">
+            <div class="col-12">
+                <div class="card okr-card">
                     <div class="card-header okr-card-header">
                         <h5 class="card-title mb-0">${objective.title}</h5>
                         <div class="dropdown">
@@ -208,13 +208,14 @@ class UI {
                         </div>
                     </div>
                     <div class="card-body">
-                        <small class="text-muted">Owner: ${ownerName}</small>
-                        <div class="progress mt-2" role="progressbar">
-                            <div class="progress-bar" style="width: ${objective.progress}%;" >
-                                <span class="progress-bar-label">${objective.progress}%</span>
+                        <div class="d-flex align-items-center mb-3">
+                            <small class="text-muted me-3">Owner: ${ownerName}</small>
+                            <div class="progress flex-grow-1" role="progressbar" style="height: 20px;">
+                                <div class="progress-bar" style="width: ${objective.progress}%;" >
+                                    <span class="progress-bar-label">${objective.progress}%</span>
+                                </div>
                             </div>
                         </div>
-                        <hr>
                         <div class="key-results-list">
                             ${objective.keyResults.map(kr => this.renderKeyResult(kr, objective.id)).join('')}
                         </div>
@@ -229,7 +230,7 @@ class UI {
         return `
             <div class="kr-item">
                 <div class="kr-title">${kr.title}</div>
-                <div class="kr-progress">
+                <div class="kr-progress-container">
                     <div class="progress" role="progressbar">
                         <div class="progress-bar bg-info" style="width: ${progress}%;">
                              <span class="progress-bar-label">${kr.currentValue} / ${kr.targetValue}</span>
