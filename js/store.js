@@ -15,6 +15,12 @@ class Store {
     saveState() {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
     }
+    
+    // Used for Excel import, a destructive action
+    replaceState(newState) {
+        this.state = newState;
+        this.saveState();
+    }
 
     getState() {
         return this.state;
@@ -33,7 +39,7 @@ class Store {
                 id: `cycle-${Date.now()}`,
                 name: "Initial Cycle",
                 startDate: new Date().toISOString().split('T')[0],
-                endDate: null,
+                endDate: "",
                 status: "Active"
             }],
             teams: initialData.teams.map(teamName => ({
@@ -41,9 +47,50 @@ class Store {
                 name: teamName
             })),
             objectives: [],
-            // Future-proofing the data model
             dependencies: []
         };
+        this.saveState();
+    }
+    
+    // --- Cycle Management ---
+    addCycle(data) {
+        const newCycle = {
+            id: `cycle-${Date.now()}`,
+            name: data.name,
+            startDate: data.startDate,
+            endDate: data.endDate,
+            status: "Archived" // New cycles are not active by default
+        };
+        this.state.cycles.push(newCycle);
+        this.saveState();
+    }
+
+    updateCycle(id, data) {
+        const cycle = this.state.cycles.find(c => c.id === id);
+        if(cycle) {
+            cycle.name = data.name;
+            cycle.startDate = data.startDate;
+            cycle.endDate = data.endDate;
+            this.saveState();
+        }
+    }
+
+    deleteCycle(id) {
+        // Prevent deleting the last or active cycle
+        if (this.state.cycles.length <= 1) return alert('Cannot delete the last cycle.');
+        const cycle = this.state.cycles.find(c => c.id === id);
+        if(cycle.status === 'Active') return alert('Cannot delete the active cycle.');
+
+        this.state.cycles = this.state.cycles.filter(c => c.id !== id);
+        // Also remove objectives associated with this cycle
+        this.state.objectives = this.state.objectives.filter(o => o.cycleId !== id);
+        this.saveState();
+    }
+
+    setActiveCycle(id) {
+        this.state.cycles.forEach(cycle => {
+            cycle.status = (cycle.id === id) ? 'Active' : 'Archived';
+        });
         this.saveState();
     }
 
@@ -72,16 +119,20 @@ class Store {
     
     // --- CRUD Operations ---
     addObjective(data) {
+        const activeCycle = this.state.cycles.find(c => c.status === 'Active');
+        if (!activeCycle) {
+            alert('No active cycle. Please set an active cycle in Settings.');
+            return null;
+        }
         const newObjective = {
             id: `obj-${Date.now()}`,
-            cycleId: this.state.cycles.find(c => c.status === 'Active').id,
+            cycleId: activeCycle.id,
             ownerId: data.ownerId,
             title: data.title,
             notes: data.notes,
             progress: 0,
             grade: null,
             keyResults: [],
-            // Future-proofing
             progressHistory: [{ date: new Date().toISOString(), progress: 0 }]
         };
         this.state.objectives.push(newObjective);
@@ -147,21 +198,17 @@ class Store {
 }
 
 // --- Chatbot API ---
-// Expose a limited, safe API to the global window object
 window.okrApp = {
     createObjective: (data) => {
-        // This function would be called by the chatbot script
-        // `data` should be an object like:
-        // { ownerId: 'team-id', title: '...', keyResults: [{ title: '...', targetValue: 100 }] }
         console.log("Creating objective via API:", data);
-        const store = new Store(); // Re-instantiate to ensure we have the latest state
+        const store = new Store();
         const newObjective = store.addObjective({
             ownerId: data.ownerId,
             title: data.title,
             notes: data.notes || ''
         });
         
-        if (data.keyResults && Array.isArray(data.keyResults)) {
+        if (newObjective && data.keyResults && Array.isArray(data.keyResults)) {
             data.keyResults.forEach(kr => {
                 store.addKeyResult(newObjective.id, {
                     title: kr.title,
@@ -172,8 +219,6 @@ window.okrApp = {
             });
         }
         
-        // We need a way to tell the main app to re-render.
-        // A custom event is a clean way to do this.
         window.dispatchEvent(new CustomEvent('okr-data-changed'));
     }
 };
