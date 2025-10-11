@@ -16,7 +16,6 @@ class Store {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
     }
     
-    // Used for Excel import, a destructive action
     replaceState(newState) {
         this.state = newState;
         this.saveState();
@@ -59,7 +58,7 @@ class Store {
             name: data.name,
             startDate: data.startDate,
             endDate: data.endDate,
-            status: "Archived" // New cycles are not active by default
+            status: "Archived"
         };
         this.state.cycles.push(newCycle);
         this.saveState();
@@ -76,7 +75,6 @@ class Store {
     }
 
     deleteCycle(id) {
-        // Prevent deleting the last or active cycle
         if (this.state.cycles.length <= 1) {
             alert('Cannot delete the last cycle.');
             return;
@@ -86,9 +84,7 @@ class Store {
             alert('Cannot delete the active cycle.');
             return;
         }
-
         this.state.cycles = this.state.cycles.filter(c => c.id !== id);
-        // Also remove objectives associated with this cycle
         this.state.objectives = this.state.objectives.filter(o => o.cycleId !== id);
         this.saveState();
     }
@@ -108,13 +104,9 @@ class Store {
     }
 
     calculateProgress(objective) {
-        if (!objective.keyResults || objective.keyResults.length === 0) {
-            return 0;
-        }
+        if (!objective.keyResults || objective.keyResults.length === 0) return 0;
         const totalProgress = objective.keyResults.reduce((sum, kr) => {
-            const start = kr.startValue;
-            const target = kr.targetValue;
-            const current = kr.currentValue;
+            const start = kr.startValue, target = kr.targetValue, current = kr.currentValue;
             if (target === start) return sum + 100;
             const progress = Math.max(0, Math.min(100, ((current - start) / (target - start)) * 100));
             kr.progress = Math.round(progress);
@@ -201,6 +193,14 @@ class Store {
             this.saveState();
         }
     }
+
+    updateFoundation(data) {
+        if (this.state) {
+            this.state.foundation.mission = data.mission;
+            this.state.foundation.vision = data.vision;
+            this.saveState();
+        }
+    }
 }
 
 // --- Chatbot API ---
@@ -213,7 +213,6 @@ window.okrApp = {
             title: data.title,
             notes: data.notes || ''
         });
-        
         if (newObjective && data.keyResults && Array.isArray(data.keyResults)) {
             data.keyResults.forEach(kr => {
                 store.addKeyResult(newObjective.id, {
@@ -224,7 +223,6 @@ window.okrApp = {
                 });
             });
         }
-        
         window.dispatchEvent(new CustomEvent('okr-data-changed'));
     }
 };
