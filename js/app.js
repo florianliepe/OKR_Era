@@ -231,16 +231,22 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('show.bs.modal', (e) => {
         const modal = e.target, trigger = e.relatedTarget;
         if (!trigger) return;
+
         if (modal.id === 'objectiveModal') {
             const form = document.getElementById('objective-form');
             form.reset();
             const state = store.getState();
             const ownerSelect = document.getElementById('objective-owner');
             ownerSelect.innerHTML = `<option value="company">${state.companyName} (Company-wide)</option>${state.teams.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}`;
+            
             if (trigger.classList.contains('edit-objective-btn')) {
                  document.getElementById('objective-modal-title').textContent = 'Edit Objective';
                  const objective = state.objectives.find(o => o.id === trigger.dataset.id);
-                 Object.assign(document.forms['objective-form'].elements, { 'objective-id': {value: objective.id}, 'objective-title': {value: objective.title}, 'objective-owner': {value: objective.ownerId}, 'objective-notes': {value: objective.notes} });
+                 // **FIX APPLIED HERE**
+                 document.getElementById('objective-id').value = objective.id;
+                 document.getElementById('objective-title').value = objective.title;
+                 document.getElementById('objective-owner').value = objective.ownerId;
+                 document.getElementById('objective-notes').value = objective.notes;
             } else {
                  document.getElementById('objective-modal-title').textContent = 'Add Objective';
                  document.getElementById('objective-id').value = '';
@@ -250,6 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('kr-form');
             form.reset();
             const state = store.getState();
+            
             if (trigger.classList.contains('add-kr-btn')) {
                 document.getElementById('kr-modal-title').textContent = 'Add Key Result';
                 document.getElementById('kr-objective-id').value = trigger.dataset.id; 
@@ -258,7 +265,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('kr-modal-title').textContent = 'Edit Key Result';
                 const { objId, krId } = trigger.dataset;
                 const kr = state.objectives.find(o => o.id === objId).keyResults.find(k => k.id === krId);
-                Object.assign(document.forms['kr-form'].elements, { 'kr-objective-id': {value: objId}, 'kr-id': {value: krId}, 'kr-title': {value: kr.title}, 'kr-start-value': {value: kr.startValue}, 'kr-target-value': {value: kr.targetValue}, 'kr-current-value': {value: kr.currentValue} });
+                // **FIX APPLIED HERE**
+                document.getElementById('kr-objective-id').value = objId;
+                document.getElementById('kr-id').value = krId;
+                document.getElementById('kr-title').value = kr.title;
+                document.getElementById('kr-start-value').value = kr.startValue;
+                document.getElementById('kr-target-value').value = kr.targetValue;
+                document.getElementById('kr-current-value').value = kr.currentValue;
             }
         }
     });
