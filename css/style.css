@@ -60,13 +60,19 @@ body {
     align-items: center;
     gap: 1rem;
     padding: 0.5rem 0;
+    border-bottom: 1px solid #495057;
 }
+.key-results-list > .kr-item:last-child {
+    border-bottom: none;
+}
+
 
 .kr-title {
     flex-grow: 1;
+    font-size: 0.9rem;
 }
 
-.kr-progress {
+.kr-progress-container {
     width: 200px;
     flex-shrink: 0;
 }
