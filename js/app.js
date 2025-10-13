@@ -220,6 +220,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.addEventListener('show.bs.modal', (e) => {
         const modal = e.target, trigger = e.relatedTarget;
+        
+        // --- DIAGNOSTIC LINE ---
+        console.log('show.bs.modal event fired. Trigger is:', trigger);
+        // -------------------------
+
         if (!trigger) return;
         const state = store.getState();
         if (!state) return;
