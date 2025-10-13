@@ -45,47 +45,81 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('cycles-view').addEventListener('click', (e) => {
-        const form = e.target.closest('#add-cycle-form');
-        if (form) {
-            form.addEventListener('submit', event => {
-                event.preventDefault();
-                store.addCycle({
-                    name: document.getElementById('cycle-name').value,
-                    startDate: document.getElementById('cycle-start-date').value,
-                    endDate: document.getElementById('cycle-end-date').value
-                });
-                ui.renderCyclesView();
-                ui.renderNavControls(store.getState());
-            }, { once: true });
-        }
-        const button = e.target.closest('button');
-        if (!button) return;
-        const id = button.dataset.id;
-        if (button.classList.contains('delete-cycle-btn')) {
-             if (confirm('Are you sure? This cannot be undone.')) {
-                store.deleteCycle(id);
+    // --- REFACTORED: Consolidated Event Delegation for Dynamic Content ---
+    document.body.addEventListener('click', (e) => {
+        // Cycle Management View buttons
+        const cycleView = e.target.closest('#cycles-view');
+        if(cycleView) {
+            const button = e.target.closest('button');
+            if (!button) return;
+            const id = button.dataset.id;
+            
+            if (button.classList.contains('delete-cycle-btn')) {
+                 if (confirm('Are you sure? This cannot be undone.')) {
+                    store.deleteCycle(id);
+                    ui.renderCyclesView();
+                    ui.renderNavControls(store.getState());
+                }
+            } else if (button.classList.contains('set-active-cycle-btn')) {
+                store.setActiveCycle(id);
                 ui.renderCyclesView();
                 ui.renderNavControls(store.getState());
             }
-        } else if (button.classList.contains('set-active-cycle-btn')) {
-            store.setActiveCycle(id);
-            ui.renderCyclesView();
-            ui.renderNavControls(store.getState());
+            return; // Stop further processing
+        }
+        
+        // Foundation View buttons
+        const foundationView = e.target.closest('#foundation-view');
+        if(foundationView) {
+            if (e.target.matches('#edit-foundation-btn')) ui.renderFoundationView(true);
+            if (e.target.matches('#cancel-foundation-btn')) ui.renderFoundationView(false);
+            if (e.target.matches('#save-foundation-btn')) {
+                store.updateFoundation({
+                    mission: document.getElementById('edit-mission').value,
+                    vision: document.getElementById('edit-vision').value,
+                });
+                ui.renderFoundationView(false);
+            }
+            return; // Stop further processing
+        }
+
+        // Explorer View buttons
+        const explorerView = e.target.closest('#explorer-view');
+        if(explorerView) {
+            const deleteBtn = e.target.closest('.delete-objective-btn');
+            if (deleteBtn) {
+                e.preventDefault();
+                if (confirm('Are you sure?')) {
+                    store.deleteObjective(deleteBtn.dataset.id);
+                    ui.renderExplorerView();
+                }
+            }
+            const deleteKrBtn = e.target.closest('.delete-kr-btn');
+            if (deleteKrBtn) {
+                e.preventDefault();
+                const { objId, krId } = deleteKrBtn.dataset;
+                store.deleteKeyResult(objId, krId);
+                ui.renderExplorerView();
+            }
+            return; // Stop further processing
         }
     });
 
-    document.getElementById('foundation-view').addEventListener('click', (e) => {
-        if (e.target.matches('#edit-foundation-btn')) ui.renderFoundationView(true);
-        if (e.target.matches('#cancel-foundation-btn')) ui.renderFoundationView(false);
-        if (e.target.matches('#save-foundation-btn')) {
-            store.updateFoundation({
-                mission: document.getElementById('edit-mission').value,
-                vision: document.getElementById('edit-vision').value,
-            });
-            ui.renderFoundationView(false);
-        }
+    // --- FORM SUBMISSIONS ---
+    
+    document.getElementById('add-cycle-form')?.addEventListener('submit', event => {
+        event.preventDefault();
+        store.addCycle({
+            name: document.getElementById('cycle-name').value,
+            startDate: document.getElementById('cycle-start-date').value,
+            endDate: document.getElementById('cycle-end-date').value
+        });
+        ui.renderCyclesView();
+        ui.renderNavControls(store.getState());
+        event.target.reset();
     });
+
+    // --- STATIC LISTENERS (Excel, Wizard, Modals) ---
     
     document.getElementById('import-excel').addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -199,32 +233,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.keyResultModal.hide();
         ui.renderExplorerView();
     });
-
-    document.getElementById('explorer-view').addEventListener('click', (e) => {
-        const deleteBtn = e.target.closest('.delete-objective-btn');
-        if (deleteBtn) {
-            e.preventDefault();
-            if (confirm('Are you sure?')) {
-                store.deleteObjective(deleteBtn.dataset.id);
-                ui.renderExplorerView();
-            }
-        }
-        const deleteKrBtn = e.target.closest('.delete-kr-btn');
-        if (deleteKrBtn) {
-            e.preventDefault();
-            const { objId, krId } = deleteKrBtn.dataset;
-            store.deleteKeyResult(objId, krId);
-            ui.renderExplorerView();
-        }
-    });
     
     document.addEventListener('show.bs.modal', (e) => {
         const modal = e.target, trigger = e.relatedTarget;
-        
-        // --- DIAGNOSTIC LINE ---
-        console.log('show.bs.modal event fired. Trigger is:', trigger);
-        // -------------------------
-
         if (!trigger) return;
         const state = store.getState();
         if (!state) return;
