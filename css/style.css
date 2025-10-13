@@ -23,16 +23,19 @@ body {
     display: flex;
     flex-direction: column;
     width: calc(100% - var(--sidebar-width));
+    /* The scroll area was overlapping the top-bar. This prevents that. */
+    overflow: hidden;
 }
 
 .top-bar {
-    flex-shrink: 0;
+    /* This is a key part of the fix. It prevents the header from being squashed or overlapped. */
+    flex-shrink: 0; 
     background-color: #212529;
 }
 
 .content-scroll-area {
     flex-grow: 1;
-    overflow-y: auto; /* Allow content to scroll */
+    overflow-y: auto; /* Allow only this content to scroll */
 }
 
 .nav-pills .nav-link.active, .nav-pills .show>.nav-link {
