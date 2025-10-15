@@ -14,8 +14,8 @@ body {
 }
 
 #sidebar {
-    width: var-sidebar-width;
-    transition: margin-left 0.3s;
+    width: var(--sidebar-width);
+    flex-shrink: 0;
 }
 
 .main-content {
@@ -23,11 +23,13 @@ body {
     display: flex;
     flex-direction: column;
     width: calc(100% - var(--sidebar-width));
+    overflow: hidden;
 }
 
 .top-bar {
     flex-shrink: 0; 
     background-color: #212529;
+    border-bottom: 1px solid var(--bs-border-color);
 }
 
 .content-scroll-area {
