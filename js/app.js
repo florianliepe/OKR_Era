@@ -45,38 +45,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Delegated listener for NON-MODAL clicks
-    document.querySelector('.app-wrapper').addEventListener('click', e => {
-        if (e.target.closest('#cycles-view')) {
-            const button = e.target.closest('button');
-            if (button && button.classList.contains('delete-cycle-btn')) {
-                 if (confirm('Are you sure? This will delete the cycle and all its objectives.')) {
-                    store.deleteCycle(button.dataset.id); ui.renderCyclesView(); ui.renderNavControls(store.getState());
-                }
-            } else if (button && button.classList.contains('set-active-cycle-btn')) {
-                store.setActiveCycle(button.dataset.id); ui.renderCyclesView(); ui.renderNavControls(store.getState());
-            }
-        }
-        
-        if (e.target.closest('#foundation-view')) {
-            if (e.target.matches('#edit-foundation-btn')) ui.renderFoundationView(true);
-            if (e.target.matches('#cancel-foundation-btn')) ui.renderFoundationView(false);
-            if (e.target.matches('#save-foundation-btn')) { store.updateFoundation({ mission: document.getElementById('edit-mission').value, vision: document.getElementById('edit-vision').value }); ui.renderFoundationView(false); }
-        }
-
-        if (e.target.closest('#explorer-view')) {
-            const deleteBtn = e.target.closest('.delete-objective-btn');
-            if (deleteBtn) { e.preventDefault(); if (confirm('Are you sure?')) { store.deleteObjective(deleteBtn.dataset.id); ui.renderExplorerView(); } }
-            const deleteKrBtn = e.target.closest('.delete-kr-btn');
-            if (deleteKrBtn) { e.preventDefault(); store.deleteKeyResult(deleteKrBtn.dataset.objId, deleteKrBtn.dataset.krId); ui.renderExplorerView(); }
-        }
-    });
-    
-    // Listeners for form submissions
+    // Delegated listener for form submissions and non-modal clicks
     document.addEventListener('submit', e => {
         if (e.target.id === 'add-cycle-form') {
             e.preventDefault();
-            store.addCycle({ name: document.getElementById('cycle-name').value, startDate: document.getElementById('cycle-start-date').value, endDate: document.getElementById('cycle-end-date').value });
+            store.addCycle({
+                name: document.getElementById('cycle-name').value,
+                startDate: document.getElementById('cycle-start-date').value,
+                endDate: document.getElementById('cycle-end-date').value,
+            });
             ui.renderCyclesView();
             ui.renderNavControls(store.getState());
         }
@@ -97,14 +74,35 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.renderExplorerView();
         }
     });
+
+    document.querySelector('.app-wrapper').addEventListener('click', e => {
+        if (e.target.closest('#cycles-view')) {
+            const button = e.target.closest('button');
+            if (button && button.classList.contains('delete-cycle-btn')) {
+                 if (confirm('Are you sure?')) { store.deleteCycle(button.dataset.id); ui.renderCyclesView(); ui.renderNavControls(store.getState()); }
+            } else if (button && button.classList.contains('set-active-cycle-btn')) {
+                store.setActiveCycle(button.dataset.id); ui.renderCyclesView(); ui.renderNavControls(store.getState());
+            }
+        }
+        if (e.target.closest('#foundation-view')) {
+            if (e.target.matches('#edit-foundation-btn')) ui.renderFoundationView(true);
+            if (e.target.matches('#cancel-foundation-btn')) ui.renderFoundationView(false);
+            if (e.target.matches('#save-foundation-btn')) { store.updateFoundation({ mission: document.getElementById('edit-mission').value, vision: document.getElementById('edit-vision').value }); ui.renderFoundationView(false); }
+        }
+        if (e.target.closest('#explorer-view')) {
+            const deleteBtn = e.target.closest('.delete-objective-btn');
+            if (deleteBtn) { e.preventDefault(); if (confirm('Are you sure?')) { store.deleteObjective(deleteBtn.dataset.id); ui.renderExplorerView(); } }
+            const deleteKrBtn = e.target.closest('.delete-kr-btn');
+            if (deleteKrBtn) { e.preventDefault(); store.deleteKeyResult(deleteKrBtn.dataset.objId, deleteKrBtn.dataset.krId); ui.renderExplorerView(); }
+        }
+    });
     
-    // THE CORRECT, ROBUST MODAL TRIGGER LISTENER
+    // Correct Modal Trigger Listener
     document.addEventListener('show.bs.modal', (e) => {
         const modal = e.target, trigger = e.relatedTarget;
         if (!trigger) return;
         const state = store.getState();
         if (!state) return;
-
         if (modal.id === 'objectiveModal') {
             const form = document.getElementById('objective-form');
             form.reset();
@@ -122,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
                  document.getElementById('objective-notes').value = objective.notes;
             }
         }
-        
         if (modal.id === 'keyResultModal') {
             const form = document.getElementById('kr-form');
             form.reset();
@@ -144,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Other Listeners (Wizard, Excel I/O, Chatbot API)
+    // Other Listeners
     let wizardData = {};
     document.getElementById('setupWizardModal').addEventListener('click', (e) => { /* unchanged */ });
     document.getElementById('import-excel').addEventListener('change', (e) => { /* unchanged */ });
