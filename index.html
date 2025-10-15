@@ -49,15 +49,18 @@
 
         <!-- Main Content Area -->
         <main class="main-content">
-            <!-- ** THE FIX IS HERE: Replaced custom header with a standard Bootstrap Navbar ** -->
+            <!-- ** THE FINAL FIX IS HERE ** -->
             <nav class="navbar top-bar">
                 <div class="container-fluid">
+                    <!-- Title on the left -->
                     <span class="navbar-brand mb-0 h1" id="view-title">OKR Explorer</span>
+                    
+                    <!-- Controls on the right -->
                     <div class="d-flex align-items-center gap-2" id="nav-controls">
                         <input class="form-control" type="search" id="search-input" placeholder="Search objectives..." style="width: 250px;">
                         <div class="dropdown">
                             <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" id="cycle-selector-btn" disabled>Cycles</button>
-                            <ul class="dropdown-menu" id="cycle-selector-list"></ul>
+                            <ul class="dropdown-menu dropdown-menu-end" id="cycle-selector-list"></ul>
                         </div>
                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#objectiveModal" id="add-objective-btn" disabled>
                             <i class="bi bi-plus-circle"></i> Add Objective
@@ -75,7 +78,7 @@
         </main>
     </div>
 
-    <!-- Modals (structure unchanged) -->
+    <!-- Modals (structure unchanged, just copy/paste this whole block) -->
     <div class="modal fade" id="setupWizardModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">...</div>
     <div class="modal fade" id="objectiveModal" tabindex="-1">...</div>
     <div class="modal fade" id="keyResultModal" tabindex="-1">...</div>
