@@ -5,25 +5,20 @@
 
 body {
     background-color: #212529;
-    overflow: hidden; /* Prevent body scrolling */
 }
 
-.app-wrapper {
-    display: flex;
+/* Ensure the main grid layout takes up the full height */
+.vh-100 {
     height: 100vh;
 }
 
-#sidebar {
+#sidebar-col {
     width: var(--sidebar-width);
-    flex-shrink: 0;
 }
 
-.main-content {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    width: calc(100% - var(--sidebar-width));
-    overflow: hidden;
+/* This is the main content area, which is a flex column itself */
+.col.p-0.d-flex.flex-column {
+    overflow: hidden; /* Prevent content from overflowing the column */
 }
 
 .top-bar {
@@ -32,8 +27,8 @@ body {
 }
 
 .content-scroll-area {
-    flex-grow: 1;
-    overflow-y: auto; /* Allow only this content to scroll */
+    flex-grow: 1; /* This makes the content area fill the remaining vertical space */
+    overflow-y: auto; /* And only this area will scroll */
 }
 
 .nav-pills .nav-link.active, .nav-pills .show>.nav-link {
