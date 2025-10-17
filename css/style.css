@@ -14,11 +14,10 @@ body {
 
 #sidebar-col {
     width: var(--sidebar-width);
-    flex-shrink: 0;
 }
 
 .main-content-col {
-    overflow: hidden; /* Prevent content from overflowing the column */
+    overflow: hidden;
 }
 
 .top-bar {
@@ -27,8 +26,8 @@ body {
 }
 
 .content-scroll-area {
-    flex-grow: 1; /* This makes the content area fill the remaining vertical space */
-    overflow-y: auto; /* And only this area will scroll */
+    flex-grow: 1;
+    overflow-y: auto;
 }
 
 .nav-pills .nav-link.active, .nav-pills .show>.nav-link {
@@ -79,7 +78,6 @@ body {
     margin-bottom: 1rem;
 }
 
-/* Project switcher styles */
 .project-card {
     cursor: pointer;
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
